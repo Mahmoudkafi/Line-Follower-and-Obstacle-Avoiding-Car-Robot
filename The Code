@@ -1,0 +1,254 @@
+/*
+ * LINE FOLLOWER AND OBSTACLE AVOIDING CAR ROBOT 
+ */
+ #include <Servo.h>
+ #define buzzerPin 13
+// Ultra Sonic Sensor
+#define echo 3
+#define  trigger 2
+// Servo Motor
+#define servo  11
+#define black 1
+#define white 0
+const int R = 12, B=4, G=1;
+Servo myservo;
+void forward();
+void turnLeft();
+void turnRight();
+void Stop();
+long getObstacleDistance();
+void avoidObstacle();
+int checkblackline(int *s1, int *s2);
+// Sensor pins
+const int IRL = A0;   // Analog pin 0
+const int IRR = A1;   // Analog pin 1
+// Motor control pins
+const int pwmA = 10;  
+const int MOT0 = 6;
+const int MOT1 = 7;
+const int MOT2 = 8;
+const int MOT3 = 9;
+const int pwmB = 5;
+int S1, S2;
+void setup() {
+  pinMode(R,OUTPUT);
+  pinMode(B,OUTPUT);
+  pinMode(G,OUTPUT);
+  pinMode(buzzerPin,OUTPUT);
+  Serial.begin(9600);
+  Serial.println("Start");
+  //UltraSonic
+pinMode(echo, INPUT );// declare ultrasonic sensor Echo pin as input
+pinMode(trigger, OUTPUT); // declare ultrasonic sensor Trigger pin as Output  
+//servo motor
+myservo.attach(servo);
+myservo.write(70);
+//Motor Setup
+pinMode(MOT0, OUTPUT);
+  pinMode(MOT1, OUTPUT);
+  pinMode(MOT2, OUTPUT);
+  pinMode(MOT3, OUTPUT);
+  pinMode(IRL, INPUT);
+  pinMode(IRR, INPUT);
+  analogWrite(pwmA, 150);
+  analogWrite(pwmB, 150);
+
+}
+
+void loop() {
+  //for RGB
+  for(int r = 0; r<2;r++){
+    for(int g=0; g<2;g++){
+      for (int b = 0;b<2;b++){
+        digitalWrite(R,r);
+        digitalWrite(G,g);
+        digitalWrite(B,b);
+        delay(150);
+      }
+    }
+  }
+  //-----
+   S1 = digitalRead(IRL);
+   S2 = digitalRead(IRR);
+  // Conditions to drive line follower appropriately
+  if (S1 == black &&  S2 == black) { // It's black wrongly written 
+    // Forward
+    digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, HIGH);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, HIGH);
+  } else if (S1 == white && S2 == white) {
+    // Stop
+    digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, LOW);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, LOW);
+    checkblackline(&S1,&S2);
+  } else if (S1 == black && S2 == white) {
+    // Right
+    digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, LOW);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, HIGH);
+  
+  } 
+  else if (S1 == white && S2 == black) {
+    // Left
+    digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, HIGH);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, LOW);
+
+  }
+  long obstacleDistance = getObstacleDistance();
+if(obstacleDistance < 20)
+{
+  avoidObstacle();
+}
+
+  Serial.println("round");
+}
+long getObstacleDistance() {
+  // Ultrasonic sensor distance measurement
+  digitalWrite(trigger, LOW);
+  delayMicroseconds(2);
+  digitalWrite(trigger, HIGH);
+  delayMicroseconds(10);
+  digitalWrite(trigger, LOW);
+  long duration = pulseIn(echo, HIGH);
+  long distance = ((duration/29)/2);
+  Serial.println("Found Obstacle");
+  return distance;
+}
+void avoidObstacle() {
+  Stop();
+  digitalWrite(buzzerPin,HIGH);
+  delay(200);
+  digitalWrite(buzzerPin, LOW);
+  Serial.println("Found Obstacle-1");
+
+  // Rotate servo to look left
+  myservo.write(0);
+  delay(500);
+  long leftDistance = getObstacleDistance();
+  delay(500);
+
+  // Rotate servo to look right
+  myservo.write(140);
+  delay(500);
+  long rightDistance = getObstacleDistance();
+  delay(500);
+
+  // Bring servo to the center
+  myservo.write(70);
+int S1 = digitalRead(IRL);
+  int S2 = digitalRead(IRR);
+
+  // Decide which way is clear
+  if (leftDistance > rightDistance) {
+    // Turn left
+    turnLeft();
+    delay(500);
+    forward();
+    delay(600);
+    turnRight();
+    delay(400);
+    forward();
+    delay(600);
+    turnRight();
+    delay(400);
+    forward();
+    delay(600);
+    turnLeft();
+    delay(500);
+    checkblackline(&S1,&S2);
+    Serial.println("Turn Left");
+  } else {
+    // Turn right
+    turnRight();
+    delay(500);
+    forward();
+    delay(600);
+    turnLeft();
+    delay(400);
+    forward();
+    delay(600);
+    turnLeft();
+    delay(400);
+    forward();
+    delay(500);
+    turnRight();
+    delay(400);
+    checkblackline(&S1,&S2);
+      Serial.println("Turn Right");
+  }
+}
+
+void forward() {
+  analogWrite(pwmA, 150);
+  analogWrite(pwmB, 150);
+  digitalWrite(MOT0, LOW);
+  digitalWrite(MOT1, HIGH);
+  digitalWrite(MOT2, LOW);
+  digitalWrite(MOT3, HIGH);
+}
+
+void turnRight()
+{
+  analogWrite(pwmA, 150);
+  analogWrite(pwmB, 150);
+digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, LOW);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, HIGH);
+}
+void turnLeft()
+{
+  analogWrite(pwmA, 150);
+  analogWrite(pwmB, 150);
+  digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, HIGH);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, LOW);
+}
+
+void Stop()
+{
+    digitalWrite(MOT0, LOW);
+    digitalWrite(MOT1, LOW);
+    digitalWrite(MOT2, LOW);
+    digitalWrite(MOT3, LOW);
+}
+
+int checkblackline(int *s1, int *s2) {
+  // Right
+  analogWrite(pwmA, 150);
+  analogWrite(pwmB, 150);
+  digitalWrite(MOT0, LOW);
+  digitalWrite(MOT1, LOW);
+  digitalWrite(MOT2, LOW);
+  digitalWrite(MOT3, HIGH);
+  delay(600);  // Adjust this delay based on your robot's turn speed
+  (*s1) = digitalRead(IRL);
+  (*s2) = digitalRead(IRR);// Check for black line
+  if ((*s1) == black && (*s2) == black) {
+    return 0;  // Black line detected, no need to turn left
+  }
+  // Left
+  analogWrite(pwmA, 150);
+  analogWrite(pwmB, 150);
+  digitalWrite(MOT0, LOW);
+  digitalWrite(MOT1, HIGH);
+  digitalWrite(MOT2, LOW);
+  digitalWrite(MOT3, LOW);
+  delay(600);  // Adjust this delay based on your robot's turn speed
+  (*s1) = digitalRead(IRL);
+  (*s2) = digitalRead(IRR);
+  Serial.println("turned Right and Left");
+  // Check for black line
+  if ((*s1) == black && (*s2) == black) {
+    return 0;  // Black line detected, turn successful
+  }
+  // No black line detected after turning right and left
+  return 1;
+}*/
