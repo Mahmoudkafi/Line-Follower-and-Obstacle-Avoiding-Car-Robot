@@ -90,3 +90,14 @@ void setup() {
 ---
 
 
+## 🛠 Design 
+
+![wiring_diagram_small](https://github.com/user-attachments/assets/afc0340a-0d22-46e8-ba60-58e80abebd01)
+
+
+
+## 🛠 Proteus 
+
+![proteus_simulation_small](https://github.com/user-attachments/assets/f218f689-3365-4c3a-b40a-a634ca609f9e)
+
+
